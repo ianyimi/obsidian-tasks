@@ -3,6 +3,9 @@
  */
 import moment from 'moment';
 import { fromLine } from '../TestingTools/TestHelpers';
+import { Task } from '../../src/Task/Task';
+import { TaskLocation } from '../../src/Task/TaskLocation';
+import { TasksFile } from '../../src/Scripting/TasksFile';
 
 window.moment = moment;
 
@@ -56,6 +59,45 @@ describe('Task Auto-ID Generation', () => {
             expect(task1!.id).not.toBe('');
             expect(task2!.id).not.toBe('');
             expect(task1!.id).not.toBe(task2!.id);
+        });
+
+        it('should generate same ID for identical tasks', () => {
+            const taskLine = '- [ ] Buy groceries #shopping';
+            const location1 = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 5, 0, 0, null);
+            const location2 = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 5, 0, 0, null);
+            
+            const task1 = Task.fromLine({ line: taskLine, taskLocation: location1, fallbackDate: null });
+            const task2 = Task.fromLine({ line: taskLine, taskLocation: location2, fallbackDate: null });
+            
+            expect(task1).not.toBeNull();
+            expect(task2).not.toBeNull();
+            expect(task1!.id).toBe(task2!.id);
+        });
+
+        it('should generate different IDs for same task in different locations', () => {
+            const taskLine = '- [ ] Buy groceries #shopping';
+            const location1 = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 5, 0, 0, null);
+            const location2 = new TaskLocation(new TasksFile('/daily/2023-07-05.md'), 5, 0, 0, null);
+            
+            const task1 = Task.fromLine({ line: taskLine, taskLocation: location1, fallbackDate: null });
+            const task2 = Task.fromLine({ line: taskLine, taskLocation: location2, fallbackDate: null });
+            
+            expect(task1).not.toBeNull();
+            expect(task2).not.toBeNull();
+            expect(task1!.id).not.toBe(task2!.id);
+        });
+
+        it('should generate stable IDs despite date changes', () => {
+            const taskWithDates1 = '- [ ] Meeting with team #work ⏳ 2023-07-04 📅 2023-07-05';
+            const taskWithDates2 = '- [ ] Meeting with team #work ⏳ 2023-07-10 📅 2023-07-12';
+            const location = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 3, 0, 0, null);
+            
+            const task1 = Task.fromLine({ line: taskWithDates1, taskLocation: location, fallbackDate: null });
+            const task2 = Task.fromLine({ line: taskWithDates2, taskLocation: location, fallbackDate: null });
+            
+            expect(task1).not.toBeNull();
+            expect(task2).not.toBeNull();
+            expect(task1!.id).toBe(task2!.id); // Same core content, same ID
         });
 
         it('should generate ID for complex task with all fields', () => {

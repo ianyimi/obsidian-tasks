@@ -19,6 +19,7 @@ import type { Priority } from './Priority';
 import { TaskRegularExpressions } from './TaskRegularExpressions';
 import { OnCompletion, handleOnCompletion } from './OnCompletion';
 import { TimeParser } from '../DateTime/TimeParser';
+import { generateHashId, extractTaskCoreContent } from '../lib/HashTools';
 
 /**
  * Storage for the task line, broken down in to sections.
@@ -262,8 +263,9 @@ export class Task extends ListItem {
         
         // Ensure every task has an ID for consistency and deduplication purposes
         if (taskInfo.id === '') {
-            // Use existing ID generation logic from TaskDependency
-            taskInfo.id = Math.random().toString(36).substring(2, 8);
+            // Generate a deterministic ID based on task content and location
+            const coreContent = extractTaskCoreContent(line);
+            taskInfo.id = generateHashId(coreContent, taskLocation.path, taskLocation.lineNumber);
         }
 
         return new Task({
