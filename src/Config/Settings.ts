@@ -82,6 +82,7 @@ export interface Settings {
 
     enableNotifications: boolean;
     ntfyServerUrl: string;
+    notificationTracking: Record<string, { unixTimestamp: number; lastSent: number }>;
 
     // The custom status states.
     statusSettings: StatusSettings;
@@ -120,6 +121,7 @@ const defaultSettings: Readonly<Settings> = {
     removeScheduledDateOnRecurrence: false,
     enableNotifications: false,
     ntfyServerUrl: '',
+    notificationTracking: {},
     statusSettings: new StatusSettings(),
     features: Feature.settingsFlags,
     generalSettings: {

@@ -174,6 +174,7 @@ describe('EditableTask tests', () => {
               "indentation": "  ",
               "listMarker": "-",
               "notifyDate": "2023-07-04T00:00:00.000Z",
+              "notifyDateIsInferred": false,
               "onCompletion": "",
               "originalMarkdown": "  - [ ] Do exercises #todo #health 🆔 abcdef ⛔ 123456,abc123 🔼 🔁 every day when done 🏁 delete ➕ 2023-07-01 🛫 2023-07-02 ⏳ 2023-07-03 🔔 2023-07-04 📅 2023-07-05 ❌ 2023-07-07 ✅ 2023-07-06 ^dcf64c",
               "parent": null,

@@ -67,6 +67,7 @@ export class Task extends ListItem {
     public readonly blockLink: string;
 
     public readonly scheduledDateIsInferred: boolean;
+    public readonly notifyDateIsInferred: boolean;
     public readonly idIsExplicit: boolean;
 
     private _urgency: number | null = null;
@@ -94,6 +95,7 @@ export class Task extends ListItem {
         tags,
         originalMarkdown,
         scheduledDateIsInferred,
+        notifyDateIsInferred,
         idIsExplicit,
         parent = null,
     }: {
@@ -119,6 +121,7 @@ export class Task extends ListItem {
         tags: string[] | [];
         originalMarkdown: string;
         scheduledDateIsInferred: boolean;
+        notifyDateIsInferred: boolean;
         idIsExplicit: boolean;
         parent?: ListItem | null;
     }) {
@@ -155,6 +158,7 @@ export class Task extends ListItem {
         this.blockLink = blockLink;
 
         this.scheduledDateIsInferred = scheduledDateIsInferred;
+        this.notifyDateIsInferred = notifyDateIsInferred;
         this.idIsExplicit = idIsExplicit;
     }
 
@@ -241,10 +245,17 @@ export class Task extends ListItem {
         // Remove the Global Filter if it is there
         taskInfo.tags = taskInfo.tags.filter((tag) => !GlobalFilter.getInstance().equals(tag));
 
-        // Auto-generate notification date if task has bell emoji but no explicit notify date
-        if (taskInfo.notifyDate === null) {
-            const hasNotifyEmoji = line.includes('🔔');
-            if (hasNotifyEmoji) {
+        // Auto-generate or enhance notification date if task has bell emoji
+        let notifyDateIsInferred = false;
+        let needsTaskTextUpdate = false;
+        const hasNotifyEmoji = line.includes('🔔');
+
+        if (hasNotifyEmoji) {
+            // Check if task has time format
+            const hasTimeFormat = TimeParser.hasTimeFormat(taskInfo.description);
+
+            if (taskInfo.notifyDate === null) {
+                // No notify date exists, generate one
                 const autoNotifyDate = TimeParser.generateAutoNotifyDate(
                     taskInfo.description,
                     taskInfo.scheduledDate,
@@ -254,6 +265,38 @@ export class Task extends ListItem {
                 );
                 if (autoNotifyDate) {
                     taskInfo.notifyDate = autoNotifyDate;
+                    notifyDateIsInferred = true;
+
+                    // If task has time format, mark for text update to persist the notify datetime
+                    if (hasTimeFormat) {
+                        needsTaskTextUpdate = true;
+                    }
+                }
+            } else if (hasTimeFormat && taskInfo.notifyDate) {
+                // Notify date exists but might need time enhancement
+                const { startTime } = TimeParser.parseTimeFromDescription(taskInfo.description);
+                if (startTime) {
+                    // Check if notify date is date-only (no specific time set)
+                    const currentNotifyTime = taskInfo.notifyDate.format('HH:mm');
+                    if (currentNotifyTime === '00:00') {
+                        // Calculate what the enhanced time should be
+                        const expectedNotifyTime = TimeParser.calculateNotificationTime(taskInfo.notifyDate, startTime);
+                        if (expectedNotifyTime) {
+                            // Only update if the file text doesn't already contain the enhanced time
+                            const expectedTimeString = expectedNotifyTime.format('YYYY-MM-DD HH:mm');
+                            const fileContainsEnhancedTime = line.includes(expectedTimeString);
+
+                            if (!fileContainsEnhancedTime) {
+                                // Date-only notify date, enhance it with calculated time
+                                taskInfo.notifyDate = expectedNotifyTime;
+                                needsTaskTextUpdate = true;
+                                console.log(`Enhanced notify date with time: ${expectedTimeString}`);
+                            } else {
+                                // File already has the enhanced time, just use it
+                                taskInfo.notifyDate = expectedNotifyTime;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -268,14 +311,30 @@ export class Task extends ListItem {
             taskInfo.id = generateHashId(coreContent, taskLocation.path, taskLocation.lineNumber);
         }
 
-        return new Task({
+        const task = new Task({
             ...taskComponents,
             ...taskInfo,
             taskLocation: taskLocation,
             originalMarkdown: line,
             scheduledDateIsInferred,
+            notifyDateIsInferred,
             idIsExplicit: idWasExplicit,
         });
+
+        // If we inferred a notify time for a task with time format,
+        // schedule an async update to persist it to the file
+        if (needsTaskTextUpdate && taskInfo.notifyDate) {
+            // Use setTimeout to avoid blocking the parsing and let the task be fully created first
+            setTimeout(async () => {
+                try {
+                    await Task.updateTaskWithInferredNotifyTime(task);
+                } catch (error) {
+                    console.error('Failed to update task with inferred notify time:', error);
+                }
+            }, 100);
+        }
+
+        return task;
     }
 
     /**
@@ -829,6 +888,7 @@ export class Task extends ListItem {
             'priority',
             'blockLink',
             'scheduledDateIsInferred',
+            'notifyDateIsInferred',
             'idIsExplicit',
             'id',
             'dependsOn',
@@ -910,6 +970,30 @@ export class Task extends ListItem {
      */
     public static extractHashtags(description: string): string[] {
         return description.match(TaskRegularExpressions.hashTags)?.map((tag) => tag.trim()) ?? [];
+    }
+
+    /**
+     * Update a task file with inferred notify datetime
+     * This method updates the task text to persist the inferred notify time
+     */
+    private static async updateTaskWithInferredNotifyTime(task: Task): Promise<void> {
+        try {
+            // Import replaceTaskWithTasks dynamically to avoid circular imports
+            const { replaceTaskWithTasks } = await import('../Obsidian/File');
+
+            // The DefaultTaskSerializer already handles serializing inferred notify dates,
+            // so we just need to trigger a file update with the same task
+            await replaceTaskWithTasks({
+                originalTask: task,
+                newTasks: [task], // Use the same task, serializer will write the notify date
+            });
+
+            console.log(
+                `Updated task ${task.id} with inferred notify time: ${task.notifyDate?.format('YYYY-MM-DD HH:mm')}`,
+            );
+        } catch (error) {
+            console.error(`Failed to update task ${task.id} with inferred notify time:`, error);
+        }
     }
 }
 

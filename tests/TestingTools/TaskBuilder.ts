@@ -57,6 +57,7 @@ export class TaskBuilder {
     private _blockLink: string = '';
 
     private _scheduledDateIsInferred: boolean = false;
+    private _notifyDateIsInferred: boolean = false;
     private _idIsExplicit: boolean = false;
     private _id: string = '';
     private _dependsOn: string[] = [];
@@ -113,6 +114,7 @@ export class TaskBuilder {
             tags: this._tags,
             originalMarkdown: '',
             scheduledDateIsInferred: this._scheduledDateIsInferred,
+            notifyDateIsInferred: this._notifyDateIsInferred,
             idIsExplicit: this._idIsExplicit,
         });
         const markdown = task.toFileLineString();

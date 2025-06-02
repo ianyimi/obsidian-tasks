@@ -68,11 +68,12 @@ export default class TasksPlugin extends Plugin {
 
         // Initialize notification service
         this.notificationService = NotificationService.getInstance();
+        this.notificationService.setSaveCallback(() => this.saveSettings());
 
         // Set up notification scheduling when tasks are loaded/updated
-        events.onCacheUpdate((update) => {
+        events.onCacheUpdate(async (update) => {
             if (update.state === State.Warm && this.notificationService) {
-                this.notificationService.rescheduleNotifications(update.tasks);
+                await this.notificationService.rescheduleNotifications(update.tasks);
             }
         });
 

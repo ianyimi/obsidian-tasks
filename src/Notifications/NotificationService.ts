@@ -1,12 +1,37 @@
-import { getSettings } from '../Config/Settings';
+import { getSettings, updateSettings } from '../Config/Settings';
 import { logging } from '../lib/logging';
 import type { Task } from '../Task/Task';
+
+interface QueuedNotification {
+    task: Task;
+    unixTimestamp: number;
+    priority: number; // For sorting
+}
+
+interface NotificationTracker {
+    unixTimestamp: number;
+    lastSent: number; // When we last sent this notification
+}
 
 export class NotificationService {
     private static instance: NotificationService;
     private logger = logging.getLogger('tasks.NotificationService');
 
-    private constructor() {}
+    // Queue management
+    private notificationQueue: QueuedNotification[] = [];
+    private isProcessingQueue = false;
+    private readonly RATE_LIMIT_DELAY = 2000; // 2 seconds between requests to avoid 429
+
+    // Tracking sent notifications to avoid duplicates
+    private sentNotifications = new Map<string, NotificationTracker>();
+
+    // Callback to save settings to disk
+    private saveSettingsCallback?: () => Promise<void>;
+
+    private constructor() {
+        this.loadTrackingData();
+        this.startQueueProcessor();
+    }
 
     public static getInstance(): NotificationService {
         if (!NotificationService.instance) {
@@ -16,8 +41,16 @@ export class NotificationService {
     }
 
     /**
+     * Set the callback to save settings to disk
+     * Should be called once during plugin initialization
+     */
+    public setSaveCallback(callback: () => Promise<void>): void {
+        this.saveSettingsCallback = callback;
+    }
+
+    /**
      * Schedule a notification for a task if it has a notification date
-     * Uses ntfy's native scheduling with X-At header
+     * Uses intelligent queuing to avoid rate limits and duplicate notifications
      */
     public scheduleNotification(task: Task): void {
         const settings = getSettings();
@@ -35,40 +68,238 @@ export class NotificationService {
             return;
         }
 
-        this.logger.debug(`Scheduling notification for task ${task.id} at ${task.notifyDate.format()}`);
+        const unixTimestamp = task.notifyDate.unix();
+        const existingTracker = this.sentNotifications.get(task.id);
 
-        // Send notification immediately to ntfy with X-At header for scheduling
-        this.sendScheduledNotification(task);
+        // Check if we need to send/update this notification
+        if (existingTracker && existingTracker.unixTimestamp === unixTimestamp) {
+            // Notification already sent for this exact timestamp, skip
+            this.logger.debug(`Skipping duplicate notification for task ${task.id} - already sent`);
+            return;
+        }
+
+        // Skip notifications for past times (they won't be useful)
+        const now = window.moment().unix();
+        if (unixTimestamp <= now) {
+            this.logger.debug(`Skipping notification for task ${task.id} - time is in the past`);
+            return;
+        }
+
+        this.logger.debug(`Queueing notification for task ${task.id} at ${task.notifyDate.format()}`);
+
+        // Add to queue with priority (earlier notifications first)
+        const queuedNotification: QueuedNotification = {
+            task,
+            unixTimestamp,
+            priority: unixTimestamp, // Earlier timestamps = higher priority (lower number)
+        };
+
+        this.addToQueue(queuedNotification);
     }
 
     /**
-     * Cancel a scheduled notification by sending a cancellation request to ntfy
+     * Add notification to queue, avoiding duplicates and maintaining sort order
      */
-    public cancelNotification(notificationId: string): void {
-        // With ntfy's native scheduling, we need to track which notifications
-        // we've sent and potentially send a cancel request if supported
-        this.logger.debug(`Cancelling notification ${notificationId}`);
-        // Note: ntfy doesn't have a standard cancel API, so we rely on task completion
-        // to naturally prevent notifications from being relevant
+    private addToQueue(notification: QueuedNotification): void {
+        // Remove any existing notification for this task from queue
+        this.notificationQueue = this.notificationQueue.filter((q) => q.task.id !== notification.task.id);
+
+        // Add new notification
+        this.notificationQueue.push(notification);
+
+        // Keep queue sorted by priority (earliest notifications first)
+        this.notificationQueue.sort((a, b) => a.priority - b.priority);
+
+        this.logger.debug(`Queue now has ${this.notificationQueue.length} notifications`);
+    }
+
+    /**
+     * Start the background queue processor
+     */
+    private startQueueProcessor(): void {
+        this.processQueue();
+    }
+
+    /**
+     * Process the notification queue with rate limiting
+     */
+    private async processQueue(): Promise<void> {
+        if (this.isProcessingQueue) {
+            return;
+        }
+
+        this.isProcessingQueue = true;
+
+        try {
+            while (this.notificationQueue.length > 0) {
+                const notification = this.notificationQueue.shift()!;
+
+                // Double-check that we still need to send this notification
+                const existingTracker = this.sentNotifications.get(notification.task.id);
+                if (existingTracker && existingTracker.unixTimestamp === notification.unixTimestamp) {
+                    continue;
+                }
+
+                // Send the notification
+                await this.sendScheduledNotification(notification.task);
+
+                // Track that we sent it
+                this.sentNotifications.set(notification.task.id, {
+                    unixTimestamp: notification.unixTimestamp,
+                    lastSent: Date.now(),
+                });
+
+                // Save tracking data after each notification
+                await this.saveTrackingData();
+
+                // Rate limiting delay
+                if (this.notificationQueue.length > 0) {
+                    await this.sleep(this.RATE_LIMIT_DELAY);
+                }
+            }
+        } catch (error) {
+            this.logger.error('Error processing notification queue:', error);
+        } finally {
+            this.isProcessingQueue = false;
+
+            // Schedule next queue check
+            setTimeout(() => this.processQueue(), this.RATE_LIMIT_DELAY);
+        }
+    }
+
+    /**
+     * Utility function to sleep for specified milliseconds
+     */
+    private sleep(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Cancel a scheduled notification
+     */
+    public cancelNotification(taskId: string): void {
+        // Remove from queue
+        this.notificationQueue = this.notificationQueue.filter((q) => q.task.id !== taskId);
+
+        // Remove from tracking
+        this.sentNotifications.delete(taskId);
+
+        this.logger.debug(`Cancelled notification for task ${taskId}`);
     }
 
     /**
      * Cancel all scheduled notifications
      */
     public cancelAllNotifications(): void {
-        this.logger.debug('Clearing notification tracking');
-        // With ntfy native scheduling, we don't need to cancel locally
-        // The notifications will be delivered as scheduled by ntfy server
+        this.notificationQueue = [];
+        this.sentNotifications.clear();
+        this.logger.debug('Cleared all notification tracking');
     }
 
     /**
      * Reschedule all notifications for updated tasks
      */
-    public rescheduleNotifications(tasks: Task[]): void {
+    public async rescheduleNotifications(tasks: Task[]): Promise<void> {
+        this.logger.debug(`Rescheduling notifications for ${tasks.length} tasks`);
+
+        // Clean up tracking for completed tasks
+        await this.cleanupCompletedTasks(tasks);
+
         for (const task of tasks) {
             if (!task.isDone) {
                 this.scheduleNotification(task);
             }
+        }
+    }
+
+    /**
+     * Clean up tracking for completed or deleted tasks
+     */
+    private async cleanupCompletedTasks(currentTasks: Task[]): Promise<void> {
+        const currentTaskIds = new Set(currentTasks.map((t) => t.id));
+        const trackedIds = Array.from(this.sentNotifications.keys());
+        let cleaned = false;
+
+        for (const trackedId of trackedIds) {
+            const task = currentTasks.find((t) => t.id === trackedId);
+            if (!task || task.isDone) {
+                // Task is completed or no longer exists, remove from tracking
+                this.sentNotifications.delete(trackedId);
+                this.notificationQueue = this.notificationQueue.filter((q) => q.task.id !== trackedId);
+                this.logger.debug(`Cleaned up notification tracking for completed/deleted task ${trackedId}`);
+                cleaned = true;
+            }
+        }
+
+        // Clean up old notifications that have already been sent (older than 24 hours)
+        const oneDayAgo = window.moment().unix() - 24 * 60 * 60;
+        for (const [taskId, tracker] of this.sentNotifications.entries()) {
+            if (tracker.unixTimestamp < oneDayAgo) {
+                this.sentNotifications.delete(taskId);
+                this.logger.debug(
+                    `Cleaned up old notification tracking for task ${taskId} (notification was ${window.moment
+                        .unix(tracker.unixTimestamp)
+                        .format()})`,
+                );
+                cleaned = true;
+            }
+        }
+
+        // Save if we cleaned up any entries
+        if (cleaned) {
+            await this.saveTrackingData();
+        }
+    }
+
+    /**
+     * Get queue status for debugging
+     */
+    public getQueueStatus(): { queueLength: number; trackedNotifications: number } {
+        return {
+            queueLength: this.notificationQueue.length,
+            trackedNotifications: this.sentNotifications.size,
+        };
+    }
+
+    /**
+     * Load tracking data from settings
+     */
+    private loadTrackingData(): void {
+        const settings = getSettings();
+        const trackingData = settings.notificationTracking || {};
+
+        this.sentNotifications.clear();
+        for (const [taskId, tracker] of Object.entries(trackingData)) {
+            this.sentNotifications.set(taskId, tracker);
+        }
+
+        this.logger.debug(`Loaded ${this.sentNotifications.size} notification tracking entries from settings`);
+    }
+
+    /**
+     * Save tracking data to settings
+     */
+    private async saveTrackingData(): Promise<void> {
+        const trackingData: Record<string, NotificationTracker> = {};
+
+        for (const [taskId, tracker] of this.sentNotifications.entries()) {
+            trackingData[taskId] = tracker;
+        }
+
+        updateSettings({ notificationTracking: trackingData });
+
+        // Save to disk if callback is available
+        if (this.saveSettingsCallback) {
+            try {
+                await this.saveSettingsCallback();
+                this.logger.debug(`Saved ${this.sentNotifications.size} notification tracking entries to disk`);
+            } catch (error) {
+                this.logger.error('Failed to save notification tracking data to disk:', error);
+            }
+        } else {
+            this.logger.debug(
+                `Updated ${this.sentNotifications.size} notification tracking entries in memory (no save callback)`,
+            );
         }
     }
 
@@ -88,17 +319,18 @@ export class NotificationService {
             const message = this.createNotificationMessage(task);
 
             // Debug logging for notification details
-            const settings = getSettings();
-            console.log(`[DEBUG] Notification for task ${task.id}:`);
+            const queueStatus = this.getQueueStatus();
+            console.log(`[DEBUG] Sending notification for task ${task.id}:`);
             console.log(`  Description: "${task.description}"`);
             console.log(`  File path: ${task.path}`);
-            console.log(`  useFilenameAsScheduledDate setting: ${settings.useFilenameAsScheduledDate}`);
             console.log(`  Scheduled date: ${task.scheduledDate?.format() || 'null'}`);
             console.log(`  Due date: ${task.dueDate?.format() || 'null'}`);
             console.log(`  Notify date: ${task.notifyDate?.format() || 'null'}`);
             console.log(`  Unix timestamp: ${task.notifyDate?.unix() || 'null'}`);
             console.log(`  X-At header: ${headers['X-At']}`);
-            console.log(`  Full headers:`, headers);
+            console.log(
+                `  Queue status: ${queueStatus.queueLength} pending, ${queueStatus.trackedNotifications} tracked`,
+            );
 
             const response = await fetch(settings.ntfyServerUrl, {
                 method: 'POST',
