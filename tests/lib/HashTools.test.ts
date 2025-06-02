@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { generateHashId, extractTaskCoreContent } from '../../src/lib/HashTools';
+import { extractTaskCoreContent, generateHashId } from '../../src/lib/HashTools';
 
 describe('HashTools', () => {
     describe('generateHashId', () => {
@@ -12,7 +12,7 @@ describe('HashTools', () => {
 
             const id1 = generateHashId(content, path, lineNumber);
             const id2 = generateHashId(content, path, lineNumber);
-            
+
             expect(id1).toBe(id2);
             expect(id1).toHaveLength(6);
             expect(id1).toMatch(/^[a-z0-9]+$/);
@@ -24,7 +24,7 @@ describe('HashTools', () => {
 
             const id1 = generateHashId('Buy groceries #shopping', path, lineNumber);
             const id2 = generateHashId('Walk the dog #pets', path, lineNumber);
-            
+
             expect(id1).not.toBe(id2);
         });
 
@@ -34,7 +34,7 @@ describe('HashTools', () => {
 
             const id1 = generateHashId(content, '/daily/2023-07-04.md', lineNumber);
             const id2 = generateHashId(content, '/daily/2023-07-05.md', lineNumber);
-            
+
             expect(id1).not.toBe(id2);
         });
 
@@ -44,7 +44,7 @@ describe('HashTools', () => {
 
             const id1 = generateHashId(content, path, 5);
             const id2 = generateHashId(content, path, 10);
-            
+
             expect(id1).not.toBe(id2);
         });
 
@@ -54,7 +54,7 @@ describe('HashTools', () => {
 
             const id1 = generateHashId(content, 'folder/file.md', lineNumber);
             const id2 = generateHashId(content, 'folder\\file.md', lineNumber);
-            
+
             expect(id1).toBe(id2);
         });
 

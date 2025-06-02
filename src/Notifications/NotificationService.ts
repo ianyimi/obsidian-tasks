@@ -87,6 +87,19 @@ export class NotificationService {
             const headers = this.createNotificationHeaders(task);
             const message = this.createNotificationMessage(task);
 
+            // Debug logging for notification details
+            const settings = getSettings();
+            console.log(`[DEBUG] Notification for task ${task.id}:`);
+            console.log(`  Description: "${task.description}"`);
+            console.log(`  File path: ${task.path}`);
+            console.log(`  useFilenameAsScheduledDate setting: ${settings.useFilenameAsScheduledDate}`);
+            console.log(`  Scheduled date: ${task.scheduledDate?.format() || 'null'}`);
+            console.log(`  Due date: ${task.dueDate?.format() || 'null'}`);
+            console.log(`  Notify date: ${task.notifyDate?.format() || 'null'}`);
+            console.log(`  Unix timestamp: ${task.notifyDate?.unix() || 'null'}`);
+            console.log(`  X-At header: ${headers['X-At']}`);
+            console.log(`  Full headers:`, headers);
+
             const response = await fetch(settings.ntfyServerUrl, {
                 method: 'POST',
                 headers,

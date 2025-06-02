@@ -8,7 +8,7 @@ import { DateFallback } from './DateFallback';
 export class TimeParser {
     // Regex to match Day Planner time format: "15:00 - 15:30" at start of text
     private static readonly DAY_PLANNER_TIME_REGEX = /^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})\s+(.*)$/;
-    
+
     // Regex to match just the start time if no end time
     private static readonly SIMPLE_TIME_REGEX = /^(\d{1,2}:\d{2})\s+(.*)$/;
 
@@ -71,11 +71,7 @@ export class TimeParser {
         }
 
         // Create a new moment with the base date and specified time
-        const scheduledTime = baseDate.clone()
-            .hour(hours)
-            .minute(minutes)
-            .second(0)
-            .millisecond(0);
+        const scheduledTime = baseDate.clone().hour(hours).minute(minutes).second(0).millisecond(0);
 
         // Subtract 10 minutes for notification
         return scheduledTime.subtract(10, 'minutes');
@@ -89,14 +85,18 @@ export class TimeParser {
      * @param filePath Task file path for filename date fallback
      * @returns The date to use for notification calculation
      */
-    public static getNotificationBaseDate(scheduledDate: Moment | null, dueDate: Moment | null, filePath?: string): Moment | null {
+    public static getNotificationBaseDate(
+        scheduledDate: Moment | null,
+        dueDate: Moment | null,
+        filePath?: string,
+    ): Moment | null {
         if (scheduledDate && scheduledDate.isValid()) {
             return scheduledDate;
         }
         if (dueDate && dueDate.isValid()) {
             return dueDate;
         }
-        
+
         // Try to get date from filename if available
         if (filePath) {
             const filenameDate = DateFallback.fromPath(filePath);
@@ -104,7 +104,7 @@ export class TimeParser {
                 return filenameDate;
             }
         }
-        
+
         return null;
     }
 
@@ -134,7 +134,7 @@ export class TimeParser {
         }
 
         const { startTime } = this.parseTimeFromDescription(description);
-        
+
         if (startTime) {
             // Task has time format, calculate 10 minutes before start time
             return this.calculateNotificationTime(baseDate, startTime);

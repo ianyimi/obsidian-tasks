@@ -14,7 +14,7 @@ describe('Task Auto-ID Generation', () => {
         it('should generate ID for simple task without any fields', () => {
             const taskLine = '- [ ] Simple task';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).not.toBe('');
             expect(task!.id).toHaveLength(6);
@@ -24,7 +24,7 @@ describe('Task Auto-ID Generation', () => {
         it('should generate ID for task with dates', () => {
             const taskLine = '- [ ] Task with dates ⏳ 2023-07-04 📅 2023-07-05';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).not.toBe('');
             expect(task!.id).toHaveLength(6);
@@ -34,7 +34,7 @@ describe('Task Auto-ID Generation', () => {
         it('should generate ID for task with notification', () => {
             const taskLine = '- [ ] 15:00 - 16:00 Meeting 🔔';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).not.toBe('');
             expect(task!.id).toHaveLength(6);
@@ -44,7 +44,7 @@ describe('Task Auto-ID Generation', () => {
         it('should preserve explicit ID if provided', () => {
             const taskLine = '- [ ] Task with explicit ID 🆔 custom1';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).toBe('custom1');
             expect(task!.idIsExplicit).toBe(true);
@@ -53,7 +53,7 @@ describe('Task Auto-ID Generation', () => {
         it('should generate different IDs for different tasks', () => {
             const task1 = fromLine({ line: '- [ ] First task' });
             const task2 = fromLine({ line: '- [ ] Second task' });
-            
+
             expect(task1).not.toBeNull();
             expect(task2).not.toBeNull();
             expect(task1!.id).not.toBe('');
@@ -65,10 +65,10 @@ describe('Task Auto-ID Generation', () => {
             const taskLine = '- [ ] Buy groceries #shopping';
             const location1 = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 5, 0, 0, null);
             const location2 = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 5, 0, 0, null);
-            
+
             const task1 = Task.fromLine({ line: taskLine, taskLocation: location1, fallbackDate: null });
             const task2 = Task.fromLine({ line: taskLine, taskLocation: location2, fallbackDate: null });
-            
+
             expect(task1).not.toBeNull();
             expect(task2).not.toBeNull();
             expect(task1!.id).toBe(task2!.id);
@@ -78,10 +78,10 @@ describe('Task Auto-ID Generation', () => {
             const taskLine = '- [ ] Buy groceries #shopping';
             const location1 = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 5, 0, 0, null);
             const location2 = new TaskLocation(new TasksFile('/daily/2023-07-05.md'), 5, 0, 0, null);
-            
+
             const task1 = Task.fromLine({ line: taskLine, taskLocation: location1, fallbackDate: null });
             const task2 = Task.fromLine({ line: taskLine, taskLocation: location2, fallbackDate: null });
-            
+
             expect(task1).not.toBeNull();
             expect(task2).not.toBeNull();
             expect(task1!.id).not.toBe(task2!.id);
@@ -91,10 +91,10 @@ describe('Task Auto-ID Generation', () => {
             const taskWithDates1 = '- [ ] Meeting with team #work ⏳ 2023-07-04 📅 2023-07-05';
             const taskWithDates2 = '- [ ] Meeting with team #work ⏳ 2023-07-10 📅 2023-07-12';
             const location = new TaskLocation(new TasksFile('/daily/2023-07-04.md'), 3, 0, 0, null);
-            
+
             const task1 = Task.fromLine({ line: taskWithDates1, taskLocation: location, fallbackDate: null });
             const task2 = Task.fromLine({ line: taskWithDates2, taskLocation: location, fallbackDate: null });
-            
+
             expect(task1).not.toBeNull();
             expect(task2).not.toBeNull();
             expect(task1!.id).toBe(task2!.id); // Same core content, same ID
@@ -103,7 +103,7 @@ describe('Task Auto-ID Generation', () => {
         it('should generate ID for complex task with all fields', () => {
             const taskLine = '- [ ] Complex task ⏳ 2023-07-04 📅 2023-07-05 #tag1 #tag2 ⏫';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).not.toBe('');
             expect(task!.id).toHaveLength(6);
@@ -113,7 +113,7 @@ describe('Task Auto-ID Generation', () => {
         it('should generate ID for task with depends on field', () => {
             const taskLine = '- [ ] Task with dependency ⛔ abc123';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).not.toBe('');
             expect(task!.id).toHaveLength(6);
@@ -148,11 +148,11 @@ describe('Task Auto-ID Generation', () => {
         it('should not serialize auto-generated IDs', () => {
             const taskLine = '- [ ] Simple task';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).not.toBe(''); // Has auto-generated ID
             expect(task!.idIsExplicit).toBe(false); // But it's not explicit
-            
+
             const serialized = task!.toFileLineString();
             expect(serialized).toBe('- [ ] Simple task'); // No ID in output
             expect(serialized).not.toContain('🆔'); // No ID symbol
@@ -161,11 +161,11 @@ describe('Task Auto-ID Generation', () => {
         it('should serialize explicit IDs', () => {
             const taskLine = '- [ ] Task with explicit ID 🆔 custom1';
             const task = fromLine({ line: taskLine });
-            
+
             expect(task).not.toBeNull();
             expect(task!.id).toBe('custom1');
             expect(task!.idIsExplicit).toBe(true);
-            
+
             const serialized = task!.toFileLineString();
             expect(serialized).toContain('🆔 custom1'); // ID included in output
         });
@@ -173,15 +173,15 @@ describe('Task Auto-ID Generation', () => {
         it('should maintain auto-generated IDs for internal processing', () => {
             const task1 = fromLine({ line: '- [ ] Task 1' });
             const task2 = fromLine({ line: '- [ ] Task 2' });
-            
+
             expect(task1).not.toBeNull();
             expect(task2).not.toBeNull();
-            
+
             // Both tasks have IDs for internal use
             expect(task1!.id).not.toBe('');
             expect(task2!.id).not.toBe('');
             expect(task1!.id).not.toBe(task2!.id);
-            
+
             // But neither shows ID in serialization
             expect(task1!.toFileLineString()).toBe('- [ ] Task 1');
             expect(task2!.toFileLineString()).toBe('- [ ] Task 2');

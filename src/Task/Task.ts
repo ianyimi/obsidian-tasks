@@ -10,6 +10,8 @@ import { PriorityTools } from '../lib/PriorityTools';
 import { logging } from '../lib/logging';
 import { logEndOfTaskEdit, logStartOfTaskEdit } from '../lib/LogTasksHelper';
 import { DateFallback } from '../DateTime/DateFallback';
+import { TimeParser } from '../DateTime/TimeParser';
+import { extractTaskCoreContent, generateHashId } from '../lib/HashTools';
 import { ListItem } from './ListItem';
 import type { Occurrence } from './Occurrence';
 import { Urgency } from './Urgency';
@@ -18,8 +20,6 @@ import type { TaskLocation } from './TaskLocation';
 import type { Priority } from './Priority';
 import { TaskRegularExpressions } from './TaskRegularExpressions';
 import { OnCompletion, handleOnCompletion } from './OnCompletion';
-import { TimeParser } from '../DateTime/TimeParser';
-import { generateHashId, extractTaskCoreContent } from '../lib/HashTools';
 
 /**
  * Storage for the task line, broken down in to sections.
@@ -250,7 +250,7 @@ export class Task extends ListItem {
                     taskInfo.scheduledDate,
                     taskInfo.dueDate,
                     true,
-                    taskLocation.path
+                    taskLocation.path,
                 );
                 if (autoNotifyDate) {
                     taskInfo.notifyDate = autoNotifyDate;
@@ -260,7 +260,7 @@ export class Task extends ListItem {
 
         // Track whether the ID was explicitly set or auto-generated
         const idWasExplicit = taskInfo.id !== '';
-        
+
         // Ensure every task has an ID for consistency and deduplication purposes
         if (taskInfo.id === '') {
             // Generate a deterministic ID based on task content and location
