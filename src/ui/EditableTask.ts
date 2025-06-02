@@ -29,6 +29,7 @@ export class EditableTask {
     createdDate: string;
     startDate: string;
     scheduledDate: string;
+    notifyDate: string;
     dueDate: string;
     doneDate: string;
     cancelledDate: string;
@@ -49,6 +50,7 @@ export class EditableTask {
         createdDate: string;
         startDate: string;
         scheduledDate: string;
+        notifyDate: string;
         dueDate: string;
         doneDate: string;
         cancelledDate: string;
@@ -67,6 +69,7 @@ export class EditableTask {
         this.createdDate = editableTask.createdDate;
         this.startDate = editableTask.startDate;
         this.scheduledDate = editableTask.scheduledDate;
+        this.notifyDate = editableTask.notifyDate;
         this.dueDate = editableTask.dueDate;
         this.doneDate = editableTask.doneDate;
         this.cancelledDate = editableTask.cancelledDate;
@@ -127,6 +130,7 @@ export class EditableTask {
             createdDate: task.created.formatAsDate(),
             startDate: task.start.formatAsDate(),
             scheduledDate: task.scheduled.formatAsDate(),
+            notifyDate: task.notify.formatAsDateAndTime(),
             dueDate: task.due.formatAsDate(),
             doneDate: task.done.formatAsDate(),
             cancelledDate: task.cancelled.formatAsDate(),
@@ -153,6 +157,7 @@ export class EditableTask {
 
         const startDate = parseTypedDateForSaving(this.startDate, this.forwardOnly);
         const scheduledDate = parseTypedDateForSaving(this.scheduledDate, this.forwardOnly);
+        const notifyDate = parseTypedDateForSaving(this.notifyDate, this.forwardOnly);
         const dueDate = parseTypedDateForSaving(this.dueDate, this.forwardOnly);
 
         const cancelledDate = parseTypedDateForSaving(this.cancelledDate, this.forwardOnly);
@@ -201,6 +206,7 @@ export class EditableTask {
             recurrence,
             startDate,
             scheduledDate,
+            notifyDate,
             dueDate,
             doneDate,
             createdDate,

@@ -189,6 +189,18 @@
         "placeholder": "For example...\npath does not include _templates/\nlimit 300\nshow urgency"
       }
     },
+    "notifications": {
+      "heading": "Notifications",
+      "enabled": {
+        "name": "Enable Notifications (ntfy.sh)",
+        "description": "Enable optionally self hosted notifications through ntfy"
+      },
+      "serverUrl": {
+        "name": "Server URL",
+        "description": "ntfy server url. (optionally self hosted)",
+        "placeholder": "https://ntfy.sh/(your-domain)"
+      }
+    },
     "recurringTasks": {
       "heading": "Recurring tasks",
       "nextLine": {

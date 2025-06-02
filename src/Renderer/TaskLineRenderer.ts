@@ -244,7 +244,13 @@ export class TaskLineRenderer {
                     span.addEventListener('click', (ev: MouseEvent) => {
                         ev.preventDefault(); // suppress the default click behavior
                         ev.stopPropagation(); // suppress further event propagation
-                        promptForDate(span, task, componentDateField, defaultTaskSaver);
+                        promptForDate(
+                            span,
+                            task,
+                            componentDateField,
+                            defaultTaskSaver,
+                            componentDateField === 'notifyDate',
+                        );
                     });
 
                     span.addEventListener('contextmenu', (ev: MouseEvent) => {
@@ -407,6 +413,7 @@ export class TaskLineRenderer {
             startDateSymbol,
             createdDateSymbol,
             scheduledDateSymbol,
+            notifyDateSymbol,
             dueDateSymbol,
             cancelledDateSymbol,
             doneDateSymbol,
@@ -443,6 +450,7 @@ export class TaskLineRenderer {
             addDateToTooltip(tooltip, task.createdDate, createdDateSymbol);
             addDateToTooltip(tooltip, task.startDate, startDateSymbol);
             addDateToTooltip(tooltip, task.scheduledDate, scheduledDateSymbol);
+            addDateToTooltip(tooltip, task.notifyDate, notifyDateSymbol);
             addDateToTooltip(tooltip, task.dueDate, dueDateSymbol);
             addDateToTooltip(tooltip, task.cancelledDate, cancelledDateSymbol);
             addDateToTooltip(tooltip, task.doneDate, doneDateSymbol);

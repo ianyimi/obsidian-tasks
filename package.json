@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs production",
+    "build": "node esbuild.config.mjs production && cp ./main.js ~/Documents/Obsidian/Vaults/The\\ Lab\\ v2/.obsidian/plugins/obsidian-tasks-plugin-fork/ && cp ./styles.css ~/Documents/Obsidian/Vaults/The\\ Lab\\ v2/.obsidian/plugins/obsidian-tasks-plugin-fork/ && cp ./manifest.json ~/Documents/Obsidian/Vaults/The\\ Lab\\ v2/.obsidian/plugins/obsidian-tasks-plugin-fork/",
     "build:dev": "node esbuild.config.mjs development",
     "lint": "eslint ./src --fix && eslint ./tests --fix && tsc --noEmit --pretty && svelte-check",
     "lint:markdown": "markdownlint-cli2 --fix \"**/*.md\" ",
@@ -83,5 +83,6 @@
     "mustache": "^4.2.0",
     "mustache-validator": "^0.2.0",
     "rrule": "^2.7.2"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }

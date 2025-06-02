@@ -80,6 +80,9 @@ export interface Settings {
     recurrenceOnNextLine: boolean;
     removeScheduledDateOnRecurrence: boolean;
 
+    enableNotifications: boolean;
+    ntfyServerUrl: string;
+
     // The custom status states.
     statusSettings: StatusSettings;
 
@@ -115,6 +118,8 @@ const defaultSettings: Readonly<Settings> = {
     filenameAsDateFolders: [],
     recurrenceOnNextLine: false,
     removeScheduledDateOnRecurrence: false,
+    enableNotifications: false,
+    ntfyServerUrl: '',
     statusSettings: new StatusSettings(),
     features: Feature.settingsFlags,
     generalSettings: {

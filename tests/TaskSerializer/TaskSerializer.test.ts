@@ -70,6 +70,7 @@ describe('TaskSerializer Example', () => {
                 startDate: null,
                 createdDate: null,
                 scheduledDate: null,
+                notifyDate: null,
                 doneDate: null,
                 cancelledDate: null,
                 recurrence: null,

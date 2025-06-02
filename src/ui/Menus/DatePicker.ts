@@ -16,6 +16,7 @@ export function promptForDate(
     task: Task,
     dateFieldToEdit: AllTaskDateFields,
     taskSaver: TaskSaver,
+    enableTime?: boolean,
 ) {
     const currentValue = task[dateFieldToEdit];
     // TODO figure out how Today's date is determined: if Obsidian is left
@@ -23,8 +24,8 @@ export function promptForDate(
     const fp = flatpickr(parentElement, {
         defaultDate: currentValue ? currentValue.format('YYYY-MM-DD') : new Date(),
         disableMobile: true,
-        enableTime: false, // Optional: Enable time picker
-        dateFormat: 'Y-m-d', // Adjust the date and time format as needed
+        enableTime: enableTime ?? false, // Optional: Enable time picker
+        dateFormat: enableTime ? 'Y-m-d HH:mm' : 'Y-m-d', // Adjust the date and time format as needed
         locale: {
             // Try to determine the first day of the week based on the locale, or use Monday
             // if unavailable

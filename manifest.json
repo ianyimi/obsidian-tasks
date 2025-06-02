@@ -1,11 +1,11 @@
 {
-  "id": "obsidian-tasks-plugin",
-  "name": "Tasks",
+  "id": "obsidian-tasks-plugin-fork",
+  "name": "Tasks Fork",
   "version": "7.19.1",
   "minAppVersion": "1.4.0",
-  "description": "Track tasks across your vault. Supports due dates, recurring tasks, done dates, sub-set of checklist items, and filtering.",
+  "description": "Track tasks across your vault. Supports due dates, recurring tasks, done dates, sub-set of checklist items, and filtering. \n ---Forked Features--- \n Notifications for specified tasks via self hosted ntfy.sh server",
   "helpUrl": "https://publish.obsidian.md/tasks/",
-  "author": "Clare Macrae and Ilyas Landikov (created by Martin Schenck)",
+  "author": "Clare Macrae and Ilyas Landikov (created by Martin Schenck, forked by Zaye)",
   "authorUrl": "https://github.com/obsidian-tasks-group",
   "fundingUrl": "https://github.com/sponsors/claremacrae",
   "isDesktopOnly": false

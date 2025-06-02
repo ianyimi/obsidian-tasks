@@ -81,6 +81,7 @@ function summarizeTaskDetails(t: TaskDetails | null): SummarizedTaskDetails | nu
         startDate: t.startDate?.format(TaskRegularExpressions.dateFormat) ?? null,
         createdDate: t.createdDate?.format(TaskRegularExpressions.dateFormat) ?? null,
         scheduledDate: t.scheduledDate?.format(TaskRegularExpressions.dateFormat) ?? null,
+        notifyDate: t.notifyDate?.format(TaskRegularExpressions.dateTimeFormat) ?? null,
         dueDate: t.dueDate?.format(TaskRegularExpressions.dateFormat) ?? null,
         doneDate: t.doneDate?.format(TaskRegularExpressions.dateFormat) ?? null,
         cancelledDate: t.cancelledDate?.format(TaskRegularExpressions.dateFormat) ?? null,

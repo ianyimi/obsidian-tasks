@@ -176,6 +176,7 @@ const taskFieldHTMLData: { [c in TaskLayoutComponent]: TaskFieldHTMLData } = {
     dueDate: createDateField('task-due', 'taskDue'),
     startDate: createDateField('task-start', 'taskStart'),
     scheduledDate: createDateField('task-scheduled', 'taskScheduled'),
+    notifyDate: createDateField('task-notify', 'taskNotify'),
     doneDate: createDateField('task-done', 'taskDone'),
     cancelledDate: createDateField('task-cancelled', 'taskCancelled'),
 

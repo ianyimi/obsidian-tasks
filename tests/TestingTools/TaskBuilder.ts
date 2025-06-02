@@ -47,6 +47,7 @@ export class TaskBuilder {
     private _createdDate: Moment | null = null;
     private _startDate: Moment | null = null;
     private _scheduledDate: Moment | null = null;
+    private _notifyDate: Moment | null = null;
     private _dueDate: Moment | null = null;
     private _doneDate: Moment | null = null;
     private _cancelledDate: Moment | null = null;
@@ -99,6 +100,7 @@ export class TaskBuilder {
             createdDate: this._createdDate,
             startDate: this._startDate,
             scheduledDate: this._scheduledDate,
+            notifyDate: this._notifyDate,
             dueDate: this._dueDate,
             doneDate: this._doneDate,
             cancelledDate: this._cancelledDate,

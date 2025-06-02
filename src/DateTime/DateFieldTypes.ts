@@ -9,7 +9,7 @@ export type HappensDate = keyof Pick<Task, 'startDate' | 'scheduledDate' | 'dueD
  */
 export type AllTaskDateFields = keyof Pick<
     Task,
-    'cancelledDate' | 'createdDate' | 'doneDate' | 'dueDate' | 'scheduledDate' | 'startDate' // alphabetical order, please.
+    'cancelledDate' | 'createdDate' | 'doneDate' | 'dueDate' | 'notifyDate' | 'scheduledDate' | 'startDate' // alphabetical order, please.
 >;
 
 export function isAHappensDate(field: AllTaskDateFields) {

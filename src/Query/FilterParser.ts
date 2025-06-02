@@ -28,6 +28,7 @@ import { FolderField } from './Filter/FolderField';
 import { RootField } from './Filter/RootField';
 import { BacklinkField } from './Filter/BacklinkField';
 import { CancelledDateField } from './Filter/CancelledDateField';
+import { NotifyDateField } from './Filter/NotifyDateField';
 import { BlockingField } from './Filter/BlockingField';
 import { IdField } from './Filter/IdField';
 import { DependsOnField } from './Filter/DependsOnField';
@@ -50,6 +51,7 @@ export const fieldCreators: EndsWith<BooleanField> = [
     () => new CreatedDateField(),
     () => new StartDateField(),
     () => new ScheduledDateField(),
+    () => new NotifyDateField(),
     () => new DueDateField(),
     () => new DoneDateField(),
     () => new PathField(),

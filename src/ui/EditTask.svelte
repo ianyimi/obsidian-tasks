@@ -5,6 +5,7 @@
     import type { Status } from '../Statuses/Status';
     import type { Task } from '../Task/Task';
     import DateEditor from './DateEditor.svelte';
+    import DateTimeEditor from './DateTimeEditor.svelte';
     import Dependency from './Dependency.svelte';
     import { EditableTask } from './EditableTask';
     import { labelContentWithAccessKey } from './EditTaskHelpers';
@@ -22,6 +23,7 @@
         prioritySymbols,
         startDateSymbol,
         scheduledDateSymbol,
+        notifyDateSymbol,
         dueDateSymbol,
         cancelledDateSymbol,
         createdDateSymbol,
@@ -39,6 +41,7 @@
     let isDoneDateValid: boolean = true;
     let isDueDateValid: boolean = true;
     let isScheduledDateValid: boolean = true;
+    let isNotifyDateValid: boolean = true;
     let isStartDateValid: boolean = true;
 
     let isRecurrenceValid: boolean = true;
@@ -104,6 +107,7 @@
         isDueDateValid &&
         isRecurrenceValid &&
         isScheduledDateValid &&
+        isNotifyDateValid &&
         isStartDateValid &&
         isDescriptionValid &&
         isCancelledDateValid &&
@@ -174,7 +178,7 @@ Availability of access keys:
 - V:
 - W:
 - X: Done
-- Y:
+- Y: Notify
 - Z:
 - -: Cancelled
 -->
@@ -278,6 +282,18 @@ Availability of access keys:
             bind:isDateValid={isStartDateValid}
             forwardOnly={editableTask.forwardOnly}
             accesskey={accesskey('a')}
+        />
+
+        <!-- --------------------------------------------------------------------------- -->
+        <!--  Notify Date  -->
+        <!-- --------------------------------------------------------------------------- -->
+        <DateTimeEditor
+            id="notify"
+            dateSymbol={notifyDateSymbol}
+            bind:date={editableTask.notifyDate}
+            bind:isDateValid={isNotifyDateValid}
+            forwardOnly={editableTask.forwardOnly}
+            accesskey={accesskey('y')}
         />
 
         <!-- --------------------------------------------------------------------------- -->

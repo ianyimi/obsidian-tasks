@@ -26,6 +26,7 @@ export interface DefaultTaskSerializerSymbols {
     readonly startDateSymbol: string;
     readonly createdDateSymbol: string;
     readonly scheduledDateSymbol: string;
+    readonly notifyDateSymbol: string;
     readonly dueDateSymbol: string;
     readonly doneDateSymbol: string;
     readonly cancelledDateSymbol: string;
@@ -38,6 +39,7 @@ export interface DefaultTaskSerializerSymbols {
         startDateRegex: RegExp;
         createdDateRegex: RegExp;
         scheduledDateRegex: RegExp;
+        notifyDateRegex: RegExp;
         dueDateRegex: RegExp;
         doneDateRegex: RegExp;
         cancelledDateRegex: RegExp;
@@ -56,6 +58,10 @@ export const taskIdSequenceRegex = new RegExp(taskIdRegex.source + '( *, *' + ta
 
 function dateFieldRegex(symbols: string) {
     return fieldRegex(symbols, '(\\d{4}-\\d{2}-\\d{2})');
+}
+
+function dateTimeFieldRegex(symbols: string) {
+    return fieldRegex(symbols, '(\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2})?)');
 }
 
 function fieldRegex(symbols: string, valueRegexString: string) {
@@ -87,6 +93,7 @@ export const DEFAULT_SYMBOLS: DefaultTaskSerializerSymbols = {
     startDateSymbol: '🛫',
     createdDateSymbol: '➕',
     scheduledDateSymbol: '⏳',
+    notifyDateSymbol: '🔔',
     dueDateSymbol: '📅',
     doneDateSymbol: '✅',
     cancelledDateSymbol: '❌',
@@ -98,6 +105,7 @@ export const DEFAULT_SYMBOLS: DefaultTaskSerializerSymbols = {
         priorityRegex: fieldRegex('([🔺⏫🔼🔽⏬])', ''),
         startDateRegex: dateFieldRegex('🛫'),
         createdDateRegex: dateFieldRegex('➕'),
+        notifyDateRegex: dateTimeFieldRegex('🔔'),
         scheduledDateRegex: dateFieldRegex('[⏳⌛]'),
         dueDateRegex: dateFieldRegex('[📅📆🗓]'),
         doneDateRegex: dateFieldRegex('✅'),
@@ -119,6 +127,18 @@ function symbolAndDateValue(shortMode: boolean, symbol: string, date: moment.Mom
     // We could call symbolAndStringValue() to remove a little code repetition,
     // but doing so would do some wasted date-formatting when in 'short mode',
     // so instead we repeat the check on shortMode value.
+    return shortMode ? ' ' + symbol : ` ${symbol} ${date.format(TaskRegularExpressions.dateFormat)}`;
+}
+
+function symbolAndDateTimeValue(shortMode: boolean, symbol: string, date: moment.Moment | null) {
+    if (!date) return '';
+    // If the date has time info (not midnight), format as datetime
+    if (date.hour() !== 0 || date.minute() !== 0) {
+        return shortMode
+            ? ' ' + symbol
+            : ` ${symbol} ${date.format(TaskRegularExpressions.dateTimeFormat).replace(' ', 'T')}`;
+    }
+    // Otherwise, format as date only
     return shortMode ? ' ' + symbol : ` ${symbol} ${date.format(TaskRegularExpressions.dateFormat)}`;
 }
 
@@ -170,6 +190,7 @@ export class DefaultTaskSerializer implements TaskSerializer {
             startDateSymbol,
             createdDateSymbol,
             scheduledDateSymbol,
+            notifyDateSymbol,
             doneDateSymbol,
             cancelledDateSymbol,
             recurrenceSymbol,
@@ -206,6 +227,9 @@ export class DefaultTaskSerializer implements TaskSerializer {
             case TaskLayoutComponent.ScheduledDate:
                 if (task.scheduledDateIsInferred) return '';
                 return symbolAndDateValue(shortMode, scheduledDateSymbol, task.scheduledDate);
+            case TaskLayoutComponent.NotifyDate:
+                if (task.notifyDateIsInferred) return '';
+                return symbolAndDateTimeValue(shortMode, notifyDateSymbol, task.notifyDate);
             case TaskLayoutComponent.DoneDate:
                 return symbolAndDateValue(shortMode, doneDateSymbol, task.doneDate);
             case TaskLayoutComponent.CancelledDate:
@@ -278,6 +302,7 @@ export class DefaultTaskSerializer implements TaskSerializer {
         let doneDate: Moment | null = null;
         let cancelledDate: Moment | null = null;
         let createdDate: Moment | null = null;
+        let notifyDate: Moment | null = null;
         let recurrenceRule: string = '';
         let recurrence: Recurrence | null = null;
         let onCompletion: OnCompletion = OnCompletion.Ignore;
@@ -340,6 +365,21 @@ export class DefaultTaskSerializer implements TaskSerializer {
             if (createdDateMatch !== null) {
                 createdDate = window.moment(createdDateMatch[1], TaskRegularExpressions.dateFormat);
                 line = line.replace(TaskFormatRegularExpressions.createdDateRegex, '').trim();
+                matched = true;
+            }
+
+            const notifyDateMatch = line.match(TaskFormatRegularExpressions.notifyDateRegex);
+            if (notifyDateMatch !== null) {
+                const dateTimeString = notifyDateMatch[1];
+                // Try parsing as datetime first, then fall back to date only
+                if (dateTimeString.includes('T')) {
+                    // Replace 'T' with space for moment.js parsing
+                    const formattedDateTime = dateTimeString.replace('T', ' ');
+                    notifyDate = window.moment(formattedDateTime, TaskRegularExpressions.dateTimeFormat);
+                } else {
+                    notifyDate = window.moment(dateTimeString, TaskRegularExpressions.dateFormat);
+                }
+                line = line.replace(TaskFormatRegularExpressions.notifyDateRegex, '').trim();
                 matched = true;
             }
 
@@ -414,6 +454,7 @@ export class DefaultTaskSerializer implements TaskSerializer {
             startDate,
             createdDate,
             scheduledDate,
+            notifyDate,
             dueDate,
             doneDate,
             cancelledDate,

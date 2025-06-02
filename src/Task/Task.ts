@@ -49,6 +49,7 @@ export class Task extends ListItem {
     public readonly createdDate: Moment | null;
     public readonly startDate: Moment | null;
     public readonly scheduledDate: Moment | null;
+    public readonly notifyDate: Moment | null;
     public readonly dueDate: Moment | null;
     public readonly doneDate: Moment | null;
     public readonly cancelledDate: Moment | null;
@@ -64,6 +65,7 @@ export class Task extends ListItem {
     public readonly blockLink: string;
 
     public readonly scheduledDateIsInferred: boolean;
+    public readonly notifyDateIsInferred: boolean;
 
     private _urgency: number | null = null;
 
@@ -78,6 +80,7 @@ export class Task extends ListItem {
         createdDate,
         startDate,
         scheduledDate,
+        notifyDate,
         dueDate,
         doneDate,
         cancelledDate,
@@ -101,6 +104,7 @@ export class Task extends ListItem {
         createdDate: moment.Moment | null;
         startDate: moment.Moment | null;
         scheduledDate: moment.Moment | null;
+        notifyDate: moment.Moment | null;
         dueDate: moment.Moment | null;
         doneDate: moment.Moment | null;
         cancelledDate: moment.Moment | null;
@@ -133,6 +137,7 @@ export class Task extends ListItem {
         this.createdDate = createdDate;
         this.startDate = startDate;
         this.scheduledDate = scheduledDate;
+        this.notifyDate = notifyDate;
         this.dueDate = dueDate;
         this.doneDate = doneDate;
         this.cancelledDate = cancelledDate;
@@ -146,6 +151,7 @@ export class Task extends ListItem {
         this.blockLink = blockLink;
 
         this.scheduledDateIsInferred = scheduledDateIsInferred;
+        this.notifyDateIsInferred = scheduledDateIsInferred;
     }
 
     /**
@@ -657,6 +663,13 @@ export class Task extends ListItem {
     /**
      * Return {@link startDate} as a {@link TasksDate}, so the field names in scripting docs are consistent with the existing search instruction names, and null values are easy to deal with.
      */
+    public get notify(): TasksDate {
+        return new TasksDate(this.notifyDate);
+    }
+
+    /**
+     * Return {@link startDate} as a {@link TasksDate}, so the field names in scripting docs are consistent with the existing search instruction names, and null values are easy to deal with.
+     */
     public get start(): TasksDate {
         return new TasksDate(this.startDate);
     }
@@ -847,6 +860,7 @@ export class Task extends ListItem {
             'createdDate' as keyof Task,
             'startDate' as keyof Task,
             'scheduledDate' as keyof Task,
+            'notifyDate' as keyof Task,
             'dueDate' as keyof Task,
             'doneDate' as keyof Task,
             'cancelledDate' as keyof Task,

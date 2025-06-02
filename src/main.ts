@@ -19,11 +19,13 @@ import { StatusSettings } from './Config/StatusSettings';
 import { tasksApiV1 } from './Api';
 import { GlobalFilter } from './Config/GlobalFilter';
 import { QueryFileDefaults } from './Query/QueryFileDefaults';
+import { NotificationService } from './Notifications/NotificationService';
 
 export default class TasksPlugin extends Plugin {
     private cache: Cache | undefined;
     public inlineRenderer: InlineRenderer | undefined;
     public queryRenderer: QueryRenderer | undefined;
+    private notificationService: NotificationService | undefined;
 
     get apiV1() {
         return tasksApiV1(this.app);
@@ -64,6 +66,16 @@ export default class TasksPlugin extends Plugin {
         this.inlineRenderer = new InlineRenderer({ plugin: this });
         this.queryRenderer = new QueryRenderer({ plugin: this, events });
 
+        // Initialize notification service
+        this.notificationService = NotificationService.getInstance();
+
+        // Set up notification scheduling when tasks are loaded/updated
+        events.onCacheUpdate((update) => {
+            if (update.state === State.Warm && this.notificationService) {
+                this.notificationService.rescheduleNotifications(update.tasks);
+            }
+        });
+
         // Update types.json.
         this.setObsidianPropertiesTypes();
 
@@ -80,6 +92,7 @@ export default class TasksPlugin extends Plugin {
     onunload() {
         log('info', i18n.t('main.unloadingPlugin', { name: this.manifest.name, version: this.manifest.version }));
         this.cache?.unload();
+        this.notificationService?.cancelAllNotifications();
     }
 
     async loadSettings() {

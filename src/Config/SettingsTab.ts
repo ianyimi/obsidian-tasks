@@ -494,6 +494,35 @@ export class SettingsTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 });
             });
+
+        // ---------------------------------------------------------------------------
+        new Setting(containerEl).setName(i18n.t('settings.notifications.heading')).setHeading();
+        // ---------------------------------------------------------------------------
+
+        new Setting(containerEl)
+            .setName(i18n.t('settings.notifications.enabled.name'))
+            .setDesc(i18n.t('settings.notifications.enabled.description'))
+            .addToggle((toggle) => {
+                const settings = getSettings();
+                toggle.setValue(settings.enableNotifications).onChange(async (value) => {
+                    updateSettings({ enableNotifications: value });
+                    await this.plugin.saveSettings();
+                });
+            });
+
+        new Setting(containerEl)
+            .setName(i18n.t('settings.notifications.serverUrl.name'))
+            .setDesc(i18n.t('settings.notifications.serverUrl.description'))
+            .addText((text) => {
+                const settings = getSettings();
+
+                text.setPlaceholder(i18n.t('settings.notifications.serverUrl.placeholder'))
+                    .setValue(settings.ntfyServerUrl)
+                    .onChange(async (value) => {
+                        updateSettings({ ntfyServerUrl: value });
+                        await this.plugin.saveSettings();
+                    });
+            });
     }
 
     private seeTheDocumentation(url: string) {
