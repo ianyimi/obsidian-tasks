@@ -133,9 +133,10 @@ export class TaskBuilder {
             .createdDate('2023-07-01')
             .startDate('2023-07-02')
             .scheduledDate('2023-07-03')
-            .dueDate('2023-07-04')
-            .doneDate('2023-07-05')
-            .cancelledDate('2023-07-06')
+            .notifyDate('2023-07-04')
+            .dueDate('2023-07-05')
+            .doneDate('2023-07-06')
+            .cancelledDate('2023-07-07')
             .onCompletion(OnCompletion.Delete)
             .dependsOn(['123456', 'abc123'])
             .id('abcdef')
@@ -273,6 +274,11 @@ export class TaskBuilder {
 
     public scheduledDate(scheduledDate: string | null): this {
         this._scheduledDate = TaskBuilder.parseDate(scheduledDate);
+        return this;
+    }
+
+    public notifyDate(notifyDate: string | null): this {
+        this._notifyDate = TaskBuilder.parseDate(notifyDate);
         return this;
     }
 

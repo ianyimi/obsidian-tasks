@@ -10,7 +10,7 @@ export class NotifyDateField extends DateField {
         super();
     }
     public fieldName(): string {
-        return 'notify date';
+        return 'notify';
     }
     public date(task: Task): Moment | null {
         return task.notifyDate;

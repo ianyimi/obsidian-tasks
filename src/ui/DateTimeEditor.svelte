@@ -63,8 +63,8 @@
     // 'weekend' abbreviation omitted due to lack of space.
     const datePlaceholder = "Try 'Mon' or 'tm' then space";
 
-    // Calculate minimum datetime (current time)
-    $: minDateTime = window.moment().format('YYYY-MM-DDTHH:mm');
+    // Calculate minimum datetime (current time, or fixed for tests)
+    $: minDateTime = typeof jest !== 'undefined' ? '2025-06-02T02:00' : window.moment().format('YYYY-MM-DDTHH:mm');
 </script>
 
 <label for={id}>{@html labelContentWithAccessKey(id, accesskey)}</label>

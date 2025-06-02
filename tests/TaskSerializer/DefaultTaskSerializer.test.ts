@@ -68,6 +68,7 @@ describe('validate emoji regular expressions', () => {
             priorityRegex: /([🔺⏫🔼🔽⏬])\\ufe0f?$/u
             startDateRegex: /🛫\\ufe0f? *(\\d{4}-\\d{2}-\\d{2})$/u
             createdDateRegex: /➕\\ufe0f? *(\\d{4}-\\d{2}-\\d{2})$/u
+            notifyDateRegex: /🔔\\ufe0f? *(\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2})?)$/u
             scheduledDateRegex: /[⏳⌛]\\ufe0f? *(\\d{4}-\\d{2}-\\d{2})$/u
             dueDateRegex: /[📅📆🗓]\\ufe0f? *(\\d{4}-\\d{2}-\\d{2})$/u
             doneDateRegex: /✅\\ufe0f? *(\\d{4}-\\d{2}-\\d{2})$/u

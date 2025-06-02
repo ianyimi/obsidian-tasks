@@ -228,7 +228,6 @@ export class DefaultTaskSerializer implements TaskSerializer {
                 if (task.scheduledDateIsInferred) return '';
                 return symbolAndDateValue(shortMode, scheduledDateSymbol, task.scheduledDate);
             case TaskLayoutComponent.NotifyDate:
-                if (task.notifyDateIsInferred) return '';
                 return symbolAndDateTimeValue(shortMode, notifyDateSymbol, task.notifyDate);
             case TaskLayoutComponent.DoneDate:
                 return symbolAndDateValue(shortMode, doneDateSymbol, task.doneDate);

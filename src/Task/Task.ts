@@ -65,7 +65,6 @@ export class Task extends ListItem {
     public readonly blockLink: string;
 
     public readonly scheduledDateIsInferred: boolean;
-    public readonly notifyDateIsInferred: boolean;
 
     private _urgency: number | null = null;
 
@@ -151,7 +150,6 @@ export class Task extends ListItem {
         this.blockLink = blockLink;
 
         this.scheduledDateIsInferred = scheduledDateIsInferred;
-        this.notifyDateIsInferred = scheduledDateIsInferred;
     }
 
     /**

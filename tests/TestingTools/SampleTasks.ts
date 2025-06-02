@@ -156,9 +156,10 @@ export class SampleTasks {
             new TaskBuilder().status(Status.TODO).description(desc('created')).createdDate('2023-04-13'),
             new TaskBuilder().status(Status.TODO).description(desc('scheduled')).scheduledDate('2023-04-14'),
             new TaskBuilder().status(Status.TODO).description(desc('start')).startDate('2023-04-15'),
-            new TaskBuilder().status(Status.TODO).description(desc('due')).dueDate('2023-04-16'),
-            new TaskBuilder().status(Status.DONE).description(desc('done')).doneDate('2023-04-17'),
-            new TaskBuilder().status(Status.CANCELLED).description(desc('cancelled')).cancelledDate('2023-04-18'),
+            new TaskBuilder().status(Status.TODO).description(desc('notify')).notifyDate('2023-04-16'),
+            new TaskBuilder().status(Status.TODO).description(desc('due')).dueDate('2023-04-17'),
+            new TaskBuilder().status(Status.DONE).description(desc('done')).doneDate('2023-04-18'),
+            new TaskBuilder().status(Status.CANCELLED).description(desc('cancelled')).cancelledDate('2023-04-19'),
         ];
         // If this test fails, a new date format is now supported, and needs to be added to the above list:
         const documentedDateFieldsCount = taskBuilders.length;

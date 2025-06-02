@@ -204,9 +204,10 @@ describe('task line rendering - layout options', () => {
                 ' ➕ 2023-07-01',
                 ' 🛫 2023-07-02',
                 ' ⏳ 2023-07-03',
-                ' 📅 2023-07-04',
-                ' ❌ 2023-07-06',
-                ' ✅ 2023-07-05',
+                ' 🔔 2023-07-04',
+                ' 📅 2023-07-05',
+                ' ❌ 2023-07-07',
+                ' ✅ 2023-07-06',
                 ' ^dcf64c',
             ],
             taskLayoutComponents,
@@ -225,9 +226,10 @@ describe('task line rendering - layout options', () => {
                 ' ➕ 2023-07-01',
                 ' 🛫 2023-07-02',
                 ' ⏳ 2023-07-03',
-                ' 📅 2023-07-04',
-                ' ❌ 2023-07-06',
-                ' ✅ 2023-07-05',
+                ' 🔔 2023-07-04',
+                ' 📅 2023-07-05',
+                ' ❌ 2023-07-07',
+                ' ✅ 2023-07-06',
                 ' ^dcf64c',
             ],
             taskLayoutComponents,
@@ -260,15 +262,15 @@ describe('task line rendering - layout options', () => {
     });
 
     it('renders with due date', async () => {
-        await testLayoutOptions(['Do exercises #todo #health', ' 📅 2023-07-04'], [TaskLayoutComponent.DueDate]);
+        await testLayoutOptions(['Do exercises #todo #health', ' 📅 2023-07-05'], [TaskLayoutComponent.DueDate]);
     });
 
     it('renders with done date', async () => {
-        await testLayoutOptions(['Do exercises #todo #health', ' ✅ 2023-07-05'], [TaskLayoutComponent.DoneDate]);
+        await testLayoutOptions(['Do exercises #todo #health', ' ✅ 2023-07-06'], [TaskLayoutComponent.DoneDate]);
     });
 
     it('renders with cancelled date', async () => {
-        await testLayoutOptions(['Do exercises #todo #health', ' ❌ 2023-07-06'], [TaskLayoutComponent.CancelledDate]);
+        await testLayoutOptions(['Do exercises #todo #health', ' ❌ 2023-07-07'], [TaskLayoutComponent.CancelledDate]);
     });
 
     it('renders with id', async () => {

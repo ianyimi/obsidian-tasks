@@ -15,6 +15,7 @@ describe('TaskLayoutOptions', () => {
             createdDate
             startDate
             scheduledDate
+            notifyDate
             dueDate
             cancelledDate
             doneDate
@@ -71,6 +72,7 @@ describe('TaskLayoutOptions', () => {
             createdDate
             startDate
             scheduledDate
+            notifyDate
             dueDate
             cancelledDate
             doneDate
@@ -90,6 +92,7 @@ describe('TaskLayoutOptions', () => {
             createdDate
             startDate
             scheduledDate
+            notifyDate
             cancelledDate
             doneDate"
         `);
@@ -145,6 +148,7 @@ describe('TaskLayoutOptions', () => {
             createdDate
             startDate
             scheduledDate
+            notifyDate
             dueDate
             cancelledDate
             doneDate"

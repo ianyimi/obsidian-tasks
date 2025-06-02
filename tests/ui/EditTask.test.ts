@@ -253,15 +253,15 @@ describe('Task rendering', () => {
     });
 
     it('should display valid due date', () => {
-        testElementRender(fullyPopulatedLine, 'due', '2023-07-04');
+        testElementRender(fullyPopulatedLine, 'due', '2023-07-05');
     });
 
     it('should display valid done date', () => {
-        testElementRender(fullyPopulatedLine, 'done', '2023-07-05');
+        testElementRender(fullyPopulatedLine, 'done', '2023-07-06');
     });
 
     it('should display valid cancelled date', () => {
-        testElementRender(fullyPopulatedLine, 'cancelled', '2023-07-06');
+        testElementRender(fullyPopulatedLine, 'cancelled', '2023-07-07');
     });
 
     const invalidDateText = 'Invalid date';

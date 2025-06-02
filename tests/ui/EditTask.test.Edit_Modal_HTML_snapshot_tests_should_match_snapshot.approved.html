@@ -127,6 +127,25 @@
         🛫
         <input class="tasks-modal-date-editor-picker" type="date" id="date-editor-picker" tabindex="-1" />
       </div>
+      <label for="notify">
+        Notif
+        <span class="accesskey">y</span>
+      </label>
+      <input
+        id="notify"
+        type="text"
+        class="tasks-modal-date-input"
+        placeholder="Try 'Mon' or 'tm' then space"
+        accesskey="y" />
+      <div class="tasks-modal-parsed-date">
+        🔔
+        <input
+          class="tasks-modal-date-editor-picker"
+          type="datetime-local"
+          min="2025-06-02T02:00"
+          id="datetime-editor-picker"
+          tabindex="-1" />
+      </div>
       <div class="future-dates-only">
         <label for="forwardOnly">
           Only
