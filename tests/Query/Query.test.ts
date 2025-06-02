@@ -1014,6 +1014,7 @@ describe('Query', () => {
                     tags: [],
                     originalMarkdown: '',
                     scheduledDateIsInferred: false,
+                    idIsExplicit: false,
                     createdDate: null,
                 }),
                 new Task({
@@ -1037,6 +1038,7 @@ describe('Query', () => {
                     tags: [],
                     originalMarkdown: '',
                     scheduledDateIsInferred: false,
+                    idIsExplicit: false,
                     createdDate: null,
                 }),
             ];

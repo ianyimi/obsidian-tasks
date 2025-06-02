@@ -20,7 +20,7 @@ export function generateUniqueId(existingIds: string[]) {
 export function ensureTaskHasId(child: Task, existingIds: string[]) {
     if (child.id !== '') return child;
 
-    return new Task({ ...child, id: generateUniqueId(existingIds) });
+    return new Task({ ...child, id: generateUniqueId(existingIds), idIsExplicit: true });
 }
 
 export function setDependenciesOnTasksWithIds(parent: Task, childrenWithIds: Task[]): Task {

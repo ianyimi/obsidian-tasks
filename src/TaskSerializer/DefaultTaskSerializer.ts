@@ -246,7 +246,8 @@ export class DefaultTaskSerializer implements TaskSerializer {
                 return symbolAndStringValue(shortMode, dependsOnSymbol, task.dependsOn.join(','));
             }
             case TaskLayoutComponent.Id:
-                return symbolAndStringValue(shortMode, idSymbol, task.id);
+                // Only serialize the ID if it was explicitly set by the user
+                return task.idIsExplicit ? symbolAndStringValue(shortMode, idSymbol, task.id) : '';
             case TaskLayoutComponent.BlockLink:
                 return task.blockLink ?? '';
             default:

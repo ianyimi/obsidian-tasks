@@ -57,6 +57,7 @@ export class TaskBuilder {
     private _blockLink: string = '';
 
     private _scheduledDateIsInferred: boolean = false;
+    private _idIsExplicit: boolean = false;
     private _id: string = '';
     private _dependsOn: string[] = [];
     private _mockData?: SimulatedFile = undefined;
@@ -112,6 +113,7 @@ export class TaskBuilder {
             tags: this._tags,
             originalMarkdown: '',
             scheduledDateIsInferred: this._scheduledDateIsInferred,
+            idIsExplicit: this._idIsExplicit,
         });
         const markdown = task.toFileLineString();
         return new Task({
@@ -140,6 +142,7 @@ export class TaskBuilder {
             .onCompletion(OnCompletion.Delete)
             .dependsOn(['123456', 'abc123'])
             .id('abcdef')
+            .idIsExplicit(true)
             .blockLink(' ^dcf64c')
             // Values in TaskLocation:
             .path('some/folder/fileName.md')
@@ -318,6 +321,11 @@ export class TaskBuilder {
 
     public scheduledDateIsInferred(isInferred: boolean) {
         this._scheduledDateIsInferred = isInferred;
+        return this;
+    }
+
+    public idIsExplicit(isExplicit: boolean) {
+        this._idIsExplicit = isExplicit;
         return this;
     }
 

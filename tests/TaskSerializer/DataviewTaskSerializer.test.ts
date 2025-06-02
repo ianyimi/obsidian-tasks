@@ -345,7 +345,7 @@ describe('DataviewTaskSerializer', () => {
         });
 
         it('should serialize id', () => {
-            const task = new TaskBuilder().description('').id('abcdef').build();
+            const task = new TaskBuilder().description('').id('abcdef').idIsExplicit(true).build();
             const serialized = serialize(task);
             expect(serialized).toEqual('  [id:: abcdef]');
         });

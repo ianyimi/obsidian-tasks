@@ -170,6 +170,7 @@ describe('EditableTask tests', () => {
               "doneDate": null,
               "dueDate": null,
               "id": "abcdef",
+              "idIsExplicit": true,
               "indentation": "  ",
               "listMarker": "-",
               "notifyDate": "2023-07-04T00:00:00.000Z",

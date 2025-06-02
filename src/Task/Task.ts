@@ -18,6 +18,7 @@ import type { TaskLocation } from './TaskLocation';
 import type { Priority } from './Priority';
 import { TaskRegularExpressions } from './TaskRegularExpressions';
 import { OnCompletion, handleOnCompletion } from './OnCompletion';
+import { TimeParser } from '../DateTime/TimeParser';
 
 /**
  * Storage for the task line, broken down in to sections.
@@ -65,6 +66,7 @@ export class Task extends ListItem {
     public readonly blockLink: string;
 
     public readonly scheduledDateIsInferred: boolean;
+    public readonly idIsExplicit: boolean;
 
     private _urgency: number | null = null;
 
@@ -91,6 +93,7 @@ export class Task extends ListItem {
         tags,
         originalMarkdown,
         scheduledDateIsInferred,
+        idIsExplicit,
         parent = null,
     }: {
         // NEW_TASK_FIELD_EDIT_REQUIRED
@@ -115,6 +118,7 @@ export class Task extends ListItem {
         tags: string[] | [];
         originalMarkdown: string;
         scheduledDateIsInferred: boolean;
+        idIsExplicit: boolean;
         parent?: ListItem | null;
     }) {
         super({
@@ -150,6 +154,7 @@ export class Task extends ListItem {
         this.blockLink = blockLink;
 
         this.scheduledDateIsInferred = scheduledDateIsInferred;
+        this.idIsExplicit = idIsExplicit;
     }
 
     /**
@@ -235,12 +240,39 @@ export class Task extends ListItem {
         // Remove the Global Filter if it is there
         taskInfo.tags = taskInfo.tags.filter((tag) => !GlobalFilter.getInstance().equals(tag));
 
+        // Auto-generate notification date if task has bell emoji but no explicit notify date
+        if (taskInfo.notifyDate === null) {
+            const hasNotifyEmoji = line.includes('🔔');
+            if (hasNotifyEmoji) {
+                const autoNotifyDate = TimeParser.generateAutoNotifyDate(
+                    taskInfo.description,
+                    taskInfo.scheduledDate,
+                    taskInfo.dueDate,
+                    true,
+                    taskLocation.path
+                );
+                if (autoNotifyDate) {
+                    taskInfo.notifyDate = autoNotifyDate;
+                }
+            }
+        }
+
+        // Track whether the ID was explicitly set or auto-generated
+        const idWasExplicit = taskInfo.id !== '';
+        
+        // Ensure every task has an ID for consistency and deduplication purposes
+        if (taskInfo.id === '') {
+            // Use existing ID generation logic from TaskDependency
+            taskInfo.id = Math.random().toString(36).substring(2, 8);
+        }
+
         return new Task({
             ...taskComponents,
             ...taskInfo,
             taskLocation: taskLocation,
             originalMarkdown: line,
             scheduledDateIsInferred,
+            idIsExplicit: idWasExplicit,
         });
     }
 
@@ -445,6 +477,7 @@ export class Task extends ListItem {
 
             // New occurrences also cannot have the same dependency fields. See #2654.
             id: '',
+            idIsExplicit: false,
             dependsOn: [],
 
             // add new createdDate on recurring tasks
@@ -794,6 +827,7 @@ export class Task extends ListItem {
             'priority',
             'blockLink',
             'scheduledDateIsInferred',
+            'idIsExplicit',
             'id',
             'dependsOn',
             'onCompletion',

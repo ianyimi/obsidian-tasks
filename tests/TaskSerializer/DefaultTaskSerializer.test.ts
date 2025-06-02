@@ -325,7 +325,7 @@ describe.each(symbolMap)("DefaultTaskSerializer with '$taskFormat' symbols", ({ 
         });
 
         it('should serialize id', () => {
-            const task = new TaskBuilder().description('').id('abcdef').build();
+            const task = new TaskBuilder().description('').id('abcdef').idIsExplicit(true).build();
             const serialized = serialize(task);
             expect(serialized).toEqual(` ${idSymbol} abcdef`);
         });
