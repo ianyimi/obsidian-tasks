@@ -216,7 +216,6 @@ export class NotificationService {
      * Clean up tracking for completed or deleted tasks
      */
     private async cleanupCompletedTasks(currentTasks: Task[]): Promise<void> {
-        const currentTaskIds = new Set(currentTasks.map((t) => t.id));
         const trackedIds = Array.from(this.sentNotifications.keys());
         let cleaned = false;
 
@@ -317,20 +316,6 @@ export class NotificationService {
         try {
             const headers = this.createNotificationHeaders(task);
             const message = this.createNotificationMessage(task);
-
-            // Debug logging for notification details
-            const queueStatus = this.getQueueStatus();
-            console.log(`[DEBUG] Sending notification for task ${task.id}:`);
-            console.log(`  Description: "${task.description}"`);
-            console.log(`  File path: ${task.path}`);
-            console.log(`  Scheduled date: ${task.scheduledDate?.format() || 'null'}`);
-            console.log(`  Due date: ${task.dueDate?.format() || 'null'}`);
-            console.log(`  Notify date: ${task.notifyDate?.format() || 'null'}`);
-            console.log(`  Unix timestamp: ${task.notifyDate?.unix() || 'null'}`);
-            console.log(`  X-At header: ${headers['X-At']}`);
-            console.log(
-                `  Queue status: ${queueStatus.queueLength} pending, ${queueStatus.trackedNotifications} tracked`,
-            );
 
             const response = await fetch(settings.ntfyServerUrl, {
                 method: 'POST',

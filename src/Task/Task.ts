@@ -44,6 +44,9 @@ export class Task extends ListItem {
     // NEW_TASK_FIELD_EDIT_REQUIRED
     public readonly status: Status;
 
+    // Static flag to prevent endless rerenders during programmatic updates
+    private static isUpdatingInferredNotifications = false;
+
     public readonly tags: string[];
 
     public readonly priority: Priority;
@@ -323,7 +326,8 @@ export class Task extends ListItem {
 
         // If we inferred a notify time for a task with time format,
         // schedule an async update to persist it to the file
-        if (needsTaskTextUpdate && taskInfo.notifyDate) {
+        // Only do this if we're not already in the middle of updating inferred notifications
+        if (needsTaskTextUpdate && taskInfo.notifyDate && !Task.isUpdatingInferredNotifications) {
             // Use setTimeout to avoid blocking the parsing and let the task be fully created first
             setTimeout(async () => {
                 try {
@@ -972,27 +976,109 @@ export class Task extends ListItem {
         return description.match(TaskRegularExpressions.hashTags)?.map((tag) => tag.trim()) ?? [];
     }
 
+    // Map to collect tasks that need file updates, grouped by file path
+    private static tasksNeedingFileUpdate = new Map<string, Task[]>();
+    private static fileUpdateTimer: NodeJS.Timeout | null = null;
+
     /**
-     * Update a task file with inferred notify datetime
-     * This method updates the task text to persist the inferred notify time
+     * Update a task file with inferred notify datetime using Obsidian Vault API
+     * This method batches updates to avoid endless rerenders
      */
     private static async updateTaskWithInferredNotifyTime(task: Task): Promise<void> {
+        // Add task to the batch for this file
+        if (!Task.tasksNeedingFileUpdate.has(task.path)) {
+            Task.tasksNeedingFileUpdate.set(task.path, []);
+        }
+        Task.tasksNeedingFileUpdate.get(task.path)!.push(task);
+
+        // Debounce file updates to batch them together
+        if (Task.fileUpdateTimer) {
+            clearTimeout(Task.fileUpdateTimer);
+        }
+
+        Task.fileUpdateTimer = setTimeout(async () => {
+            await Task.processBatchedFileUpdates();
+        }, 150); // Small delay to batch multiple tasks from the same file
+    }
+
+    /**
+     * Process all batched file updates at once
+     */
+    private static async processBatchedFileUpdates(): Promise<void> {
+        if (Task.tasksNeedingFileUpdate.size === 0) {
+            return;
+        }
+
+        // Set flag to prevent endless rerenders
+        Task.isUpdatingInferredNotifications = true;
+
         try {
-            // Import replaceTaskWithTasks dynamically to avoid circular imports
-            const { replaceTaskWithTasks } = await import('../Obsidian/File');
+            // Get the vault from the app context
+            // @ts-ignore - app is available on window in Obsidian context
+            if (!window.app?.vault) {
+                console.error('Vault not available for file update');
+                return;
+            }
 
-            // The DefaultTaskSerializer already handles serializing inferred notify dates,
-            // so we just need to trigger a file update with the same task
-            await replaceTaskWithTasks({
-                originalTask: task,
-                newTasks: [task], // Use the same task, serializer will write the notify date
-            });
+            // @ts-ignore - app is available on window in Obsidian context
+            const vault = window.app.vault;
 
-            console.log(
-                `Updated task ${task.id} with inferred notify time: ${task.notifyDate?.format('YYYY-MM-DD HH:mm')}`,
-            );
+            // Process each file
+            for (const [filePath, tasks] of Task.tasksNeedingFileUpdate.entries()) {
+                await Task.updateSingleFile(vault, filePath, tasks);
+            }
+
+            // Clear the batch
+            Task.tasksNeedingFileUpdate.clear();
         } catch (error) {
-            console.error(`Failed to update task ${task.id} with inferred notify time:`, error);
+            console.error('Failed to process batched file updates:', error);
+        } finally {
+            // Always clear the flag
+            Task.isUpdatingInferredNotifications = false;
+        }
+    }
+
+    /**
+     * Update a single file with all its batched tasks
+     */
+    private static async updateSingleFile(vault: any, filePath: string, tasks: Task[]): Promise<void> {
+        try {
+            const file = vault.getAbstractFileByPath(filePath);
+            if (!file) {
+                console.error(`File not found: ${filePath}`);
+                return;
+            }
+
+            // Read the current file content
+            const fileContent = await vault.read(file);
+            const lines = fileContent.split('\n');
+
+            // Update all task lines in this file
+            let hasChanges = false;
+            for (const task of tasks) {
+                const lineNumber = task.taskLocation.lineNumber;
+                if (lineNumber >= 0 && lineNumber < lines.length) {
+                    const updatedTaskLine = task.toFileLineString();
+                    if (lines[lineNumber] !== updatedTaskLine) {
+                        lines[lineNumber] = updatedTaskLine;
+                        hasChanges = true;
+                        console.log(
+                            `Updated task ${task.id} with inferred notify time: ${task.notifyDate?.format('YYYY-MM-DD HH:mm')}`,
+                        );
+                    }
+                } else {
+                    console.error(`Invalid line number ${lineNumber} for file ${filePath}`);
+                }
+            }
+
+            // Write updated content back to file only if there are changes
+            if (hasChanges) {
+                const updatedContent = lines.join('\n');
+                await vault.modify(file, updatedContent);
+                console.log(`Updated file ${filePath} with ${tasks.length} inferred notification changes`);
+            }
+        } catch (error) {
+            console.error(`Failed to update file ${filePath}:`, error);
         }
     }
 }
